@@ -2,9 +2,13 @@
   "name": "postman-backend",
   "version": "1.0.0",
   "main": "index.js",
+  "engines": {
+    "node": ">=18.x"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
+    "start": "NODE_ENV=production node index.js",
+    "build": "npm install",
     "dev": "nodemon index.js"
   },
   "keywords": [],
