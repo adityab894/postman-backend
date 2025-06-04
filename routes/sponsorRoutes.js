@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Sponsor = require('../models/Sponsor');
+const SponsorSubmission = require('../models/SponsorSubmission');
+const { sendSponsorNotification } = require('../utils/emailService');
 
 // Submit new sponsorship request
 router.post('/submit', async (req, res) => {
@@ -57,8 +58,8 @@ router.post('/submit', async (req, res) => {
       });
     }
 
-    // Create new sponsor
-    const sponsor = await Sponsor.create({
+    // Create new sponsor submission
+    const sponsorSubmission = await SponsorSubmission.create({
       name,
       email,
       company,
@@ -66,20 +67,29 @@ router.post('/submit', async (req, res) => {
       jobTitle,
       package,
       message,
-      additionalOptions
+      additionalOptions,
+      submittedAt: new Date()
     });
+
+    // Send email notification
+    try {
+      await sendSponsorNotification(sponsorSubmission);
+    } catch (emailError) {
+      console.error('Failed to send email notification:', emailError);
+      // Continue with the response even if email fails
+    }
 
     res.status(201).json({
       status: 'success',
       message: 'Sponsorship request submitted successfully',
       data: {
         sponsor: {
-          id: sponsor._id,
-          name: sponsor.name,
-          email: sponsor.email,
-          company: sponsor.company,
-          package: sponsor.package,
-          status: sponsor.status
+          id: sponsorSubmission._id,
+          name: sponsorSubmission.name,
+          email: sponsorSubmission.email,
+          company: sponsorSubmission.company,
+          package: sponsorSubmission.package,
+          status: sponsorSubmission.status
         }
       }
     });
@@ -119,7 +129,7 @@ router.post('/submit', async (req, res) => {
 // Get all sponsorship requests (for admin)
 router.get('/', async (req, res) => {
   try {
-    const sponsors = await Sponsor.find().sort({ createdAt: -1 });
+    const sponsors = await SponsorSubmission.find().sort({ createdAt: -1 });
     res.status(200).json({
       status: 'success',
       results: sponsors.length,

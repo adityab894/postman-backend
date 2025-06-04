@@ -61,9 +61,12 @@ app.use('*', (req, res) => {
 
 // Database connection
 mongoose
-  .connect('mongodb://127.0.0.1:27017/postman-conference')
+  .connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/postman-conference', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
-    console.log('Connected to local MongoDB');
+    console.log('Connected to MongoDB');
     // Start server with error handling for port conflicts
     const server = app.listen(PORT, () => {
       console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
