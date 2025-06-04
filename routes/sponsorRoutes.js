@@ -1,55 +1,137 @@
 const express = require('express');
 const router = express.Router();
-const SponsorSubmission = require('../models/SponsorSubmission');
-const rateLimit = require('express-rate-limit');
-const { sendSponsorNotification } = require('../utils/emailService');
-const validateSponsorSubmission = require('../middleware/validateSponsorSubmission');
+const Sponsor = require('../models/Sponsor');
 
-// Rate limiting middleware
-const submissionLimiter = rateLimit({
-  windowMs: process.env.RATE_LIMIT_WINDOW_MS || 900000, // 15 minutes
-  max: process.env.RATE_LIMIT_MAX || 100, // Limit each IP to 100 requests per windowMs
-  message: {
-    status: 'error',
-    message: 'Too many submissions from this IP, please try again later'
-  }
-});
-
-// Submit a new sponsorship request
-router.post('/submit', submissionLimiter, validateSponsorSubmission, async (req, res) => {
+// Submit new sponsorship request
+router.post('/submit', async (req, res) => {
   try {
-    const submission = new SponsorSubmission(req.body);
-    await submission.save();
-    
-    // Send email notification
-    await sendSponsorNotification(submission);
-    
+    const {
+      name,
+      email,
+      company,
+      phone,
+      jobTitle,
+      package,
+      message,
+      additionalOptions
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !company || !phone || !package) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Please provide all required fields',
+        errors: [
+          { field: 'name', message: !name ? 'Name is required' : null },
+          { field: 'email', message: !email ? 'Email is required' : null },
+          { field: 'company', message: !company ? 'Company name is required' : null },
+          { field: 'phone', message: !phone ? 'Phone number is required' : null },
+          { field: 'package', message: !package ? 'Sponsorship package is required' : null }
+        ].filter(error => error.message)
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid email format'
+      });
+    }
+
+    // Validate phone number (basic validation)
+    if (phone.length < 10) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid phone number'
+      });
+    }
+
+    // Validate package
+    const validPackages = ['Gold', 'Silver', 'Bronze', 'Community'];
+    if (!validPackages.includes(package)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid sponsorship package'
+      });
+    }
+
+    // Create new sponsor
+    const sponsor = await Sponsor.create({
+      name,
+      email,
+      company,
+      phone,
+      jobTitle,
+      package,
+      message,
+      additionalOptions
+    });
+
     res.status(201).json({
       status: 'success',
-      message: 'Your sponsorship request has been submitted successfully. We will contact you soon.',
-      data: submission
+      message: 'Sponsorship request submitted successfully',
+      data: {
+        sponsor: {
+          id: sponsor._id,
+          name: sponsor.name,
+          email: sponsor.email,
+          company: sponsor.company,
+          package: sponsor.package,
+          status: sponsor.status
+        }
+      }
     });
+
   } catch (error) {
-    console.error('Submission error:', error);
-    res.status(400).json({
+    console.error('Sponsor submission error:', error);
+    
+    // Handle duplicate email error
+    if (error.code === 11000) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'A sponsorship request with this email already exists'
+      });
+    }
+
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+      
+      return res.status(400).json({
+        status: 'error',
+        message: 'Validation error',
+        errors
+      });
+    }
+
+    res.status(500).json({
       status: 'error',
-      message: error.message || 'Failed to submit sponsorship request'
+      message: 'Something went wrong while submitting the sponsorship request'
     });
   }
 });
 
-// Get all submissions (for admin use)
+// Get all sponsorship requests (for admin)
 router.get('/', async (req, res) => {
   try {
-    const submissions = await SponsorSubmission.find().sort({ submittedAt: -1 });
+    const sponsors = await Sponsor.find().sort({ createdAt: -1 });
     res.status(200).json({
       status: 'success',
-      data: submissions
+      results: sponsors.length,
+      data: {
+        sponsors
+      }
     });
   } catch (error) {
+    console.error('Error fetching sponsors:', error);
     res.status(500).json({
       status: 'error',
-      message: 'Failed to fetch submissions'
+      message: 'Error fetching sponsorship requests'
     });
   }
 });
