@@ -22,7 +22,11 @@ app.use(cors({
       'http://localhost:5173',  // Local frontend
       'http://localhost:3000',  // Alternative local frontend port
       'https://postman-frontend-five.vercel.app',  // Production frontend
-      'https://postman-frontend-five.vercel.app/'  // Production frontend with trailing slash
+      'https://postman-frontend-five.vercel.app/',  // Production frontend with trailing slash
+      'https://www.postmancommunitypune.in',  // Main production domain
+      'http://www.postmancommunitypune.in',   // HTTP version
+      'https://postmancommunitypune.in',      // Without www
+      'http://postmancommunitypune.in'        // HTTP without www
     ];
     
     // Allow requests with no origin (like mobile apps or curl requests)
@@ -31,6 +35,7 @@ app.use(cors({
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true);
     } else {
+      console.log('Blocked origin:', origin); // Add logging for debugging
       callback(new Error('Not allowed by CORS'));
     }
   },
