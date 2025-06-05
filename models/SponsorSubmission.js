@@ -36,7 +36,7 @@ const sponsorSubmissionSchema = new mongoose.Schema(
       type: String,
       required: [true, "Sponsorship package is required"],
       enum: {
-        values: ["Gold", "Silver", "Bronze", "Community"],
+        values: ["TITLE", "GOLD","SILVER", "ASSOCIATE", "IN KIND"],
         message: "Invalid sponsorship package",
       },
     },

@@ -54,7 +54,7 @@ router.post("/submit", async (req, res) => {
       });
     }
 
-    const validPackages = ["Gold", "Silver", "Bronze", "Community"];
+    const validPackages = ["TITLE", "GOLD","SILVER", "ASSOCIATE", "IN KIND"];
     if (!validPackages.includes(package)) {
       return res.status(400).json({
         status: "error",
