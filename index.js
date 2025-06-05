@@ -61,29 +61,20 @@ app.use('*', (req, res) => {
 
 // Database connection
 mongoose
-  .connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/postman-conference', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/postman-conference')
   .then(() => {
     console.log('Connected to MongoDB');
     console.log('Environment:', process.env.NODE_ENV);
     console.log('MongoDB URI exists:', !!process.env.MONGODB_URI);
     console.log('Frontend URL:', process.env.FRONTEND_URL || 'Not set');
     
-    // Start server with error handling for port conflicts
-    const server = app.listen(PORT, () => {
-      console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-      console.log('Server started at:', new Date().toISOString());
-    }).on('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use. Please try a different port.`);
-        process.exit(1);
-      } else {
-        console.error('Server error:', err);
-        process.exit(1);
-      }
-    });
+    if (process.env.NODE_ENV !== 'production') {
+      // Only start the server directly in non-production environments
+      const server = app.listen(PORT, () => {
+        console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+        console.log('Server started at:', new Date().toISOString());
+      });
+    }
   })
   .catch((err) => {
     console.error('MongoDB connection error details:', {
@@ -109,3 +100,6 @@ process.on('uncaughtException', (err) => {
   console.error(err.name, err.message);
   process.exit(1);
 });
+
+// Export the Express app for Vercel
+module.exports = app;
