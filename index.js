@@ -34,12 +34,34 @@ if (process.env.NODE_ENV === 'development') {
 const speakerRoutes = require('./routes/speakerRoutes');
 const sponsorRoutes = require('./routes/sponsorRoutes');
 
-app.use('/api/speakers', speakerRoutes);
-app.use('/api/sponsors', sponsorRoutes);
+// Root route
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Welcome to the Postman Conference API',
+    endpoints: {
+      health: '/health',
+      speakers: '/api/speakers',
+      sponsors: '/api/sponsors'
+    }
+  });
+});
 
 // Health check route
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
+});
+
+// API routes
+app.use('/api/speakers', speakerRoutes);
+app.use('/api/sponsors', sponsorRoutes);
+
+// Handle unhandled routes
+app.use('*', (req, res) => {
+  res.status(404).json({
+    status: 'error',
+    message: `Can't find ${req.originalUrl} on this server!`
+  });
 });
 
 // Error handling middleware
@@ -48,14 +70,6 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({
     status: 'error',
     message: err.message || 'Something went wrong!'
-  });
-});
-
-// Handle unhandled routes
-app.use('*', (req, res) => {
-  res.status(404).json({
-    status: 'error',
-    message: `Can't find ${req.originalUrl} on this server!`
   });
 });
 
