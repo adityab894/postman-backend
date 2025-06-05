@@ -9,23 +9,23 @@ const morgan = require('morgan');
 const app = express();
 const PORT = process.env.PORT || 5002;
 
-// Security Middleware
-app.use(helmet()); // Set security HTTP headers
-app.use(xss()); // Sanitize request data
-app.use(express.json({ limit: '10kb' })); // Body parser, reading data from body into req.body
+
+app.use(helmet()); 
+app.use(xss()); 
+app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// CORS setup
+
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? process.env.FRONTEND_URL 
-    : '*',  // Allow all origins in development
+    : '*',  
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Development logging
+
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -33,16 +33,15 @@ if (process.env.NODE_ENV === 'development') {
 // Routes
 const speakerRoutes = require('./routes/speakerRoutes');
 const sponsorRoutes = require('./routes/sponsorRoutes');
+const emailRoutes = require('./routes/emailRoutes');
 
 app.use('/api/speakers', speakerRoutes);
 app.use('/api/sponsors', sponsorRoutes);
-
-// Health check route
+app.use('/api/email', emailRoutes);
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
@@ -51,7 +50,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Handle unhandled routes
 app.use('*', (req, res) => {
   res.status(404).json({
     status: 'error',
@@ -59,18 +57,20 @@ app.use('*', (req, res) => {
   });
 });
 
-// Database connection
-mongoose
-  .connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/postman-conference', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log('Connected to MongoDB');
-    // Start server with error handling for port conflicts
+// Database connection with retry logic
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/postman-conference', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    
     const server = app.listen(PORT, () => {
       console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-    }).on('error', (err) => {
+    });
+
+    server.on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
         console.error(`Port ${PORT} is already in use. Please try a different port.`);
         process.exit(1);
@@ -79,20 +79,22 @@ mongoose
         process.exit(1);
       }
     });
-  })
-  .catch((err) => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
-  });
 
-// Handle unhandled promise rejections
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    console.log('Retrying database connection in 5 seconds...');
+    setTimeout(connectDB, 5000);
+  }
+};
+
+connectDB();
+
 process.on('unhandledRejection', (err) => {
   console.error('UNHANDLED REJECTION! 💥 Shutting down...');
   console.error(err.name, err.message);
   process.exit(1);
 });
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
   console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
   console.error(err.name, err.message);
