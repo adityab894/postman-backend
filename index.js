@@ -26,13 +26,26 @@ app.use(cors({
       'https://www.postmancommunitypune.in',  // Main production domain
       'http://www.postmancommunitypune.in',   // HTTP version
       'https://postmancommunitypune.in',      // Without www
-      'http://postmancommunitypune.in'        // HTTP without www
+      'http://postmancommunitypune.in',       // HTTP without www
+      'https://postmancommunitypune.in/',     // With trailing slash
+      'http://postmancommunitypune.in/',      // HTTP with trailing slash
+      'https://www.postmancommunitypune.in/', // WWW with trailing slash
+      'http://www.postmancommunitypune.in/'   // HTTP WWW with trailing slash
     ];
     
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    // In development, allow all origins
+    if (process.env.NODE_ENV === 'development') {
+      callback(null, true);
+      return;
+    }
     
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       console.log('Blocked origin:', origin); // Add logging for debugging
@@ -41,7 +54,8 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+  maxAge: 86400 // Cache preflight request for 24 hours
 }));
 
 // Add CORS debugging
