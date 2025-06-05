@@ -63,10 +63,26 @@ const emailRoutes = require('./routes/emailRoutes');
 app.use('/api/speakers', speakerRoutes);
 app.use('/api/sponsors', sponsorRoutes);
 app.use('/api/email', emailRoutes);
+
+// Add root route handler
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    status: 'success',
+    message: 'Welcome to the Postman Conference API',
+    endpoints: {
+      speakers: '/api/speakers',
+      sponsors: '/api/sponsors',
+      email: '/api/email',
+      health: '/health'
+    }
+  });
+});
+
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
@@ -75,6 +91,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// 404 handler - must be last
 app.use('*', (req, res) => {
   res.status(404).json({
     status: 'error',
