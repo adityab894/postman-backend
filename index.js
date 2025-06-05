@@ -19,11 +19,22 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? process.env.FRONTEND_URL 
-    : '*',  
+    : '*',  // Allow all origins in development
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept']
 }));
+
+// Add CORS debugging
+app.use((req, res, next) => {
+  console.log('Incoming request:', {
+    url: req.url,
+    method: req.method,
+    origin: req.headers.origin,
+    headers: req.headers
+  });
+  next();
+});
 
 
 if (process.env.NODE_ENV === 'development') {
