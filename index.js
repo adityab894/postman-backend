@@ -9,35 +9,22 @@ const morgan = require('morgan');
 const app = express();
 const PORT = process.env.PORT || 5002;
 
-
 app.use(helmet()); 
 app.use(xss()); 
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: function (origin, callback) {
     const allowedOrigins = [
-      'http://localhost:5173',  // Local frontend
-      'http://localhost:3000',  // Alternative local frontend port
-      'https://postman-frontend-five.vercel.app',  // Production frontend
-      'https://postman-frontend-five.vercel.app/',  // Production frontend with trailing slash
-      'https://www.postmancommunitypune.in',  // Main production domain
-      'http://www.postmancommunitypune.in',   // HTTP version
-      'https://postmancommunitypune.in',      // Without www
-      'http://postmancommunitypune.in',       // HTTP without www
-      'https://postmancommunitypune.in/',     // With trailing slash
-      'http://postmancommunitypune.in/',      // HTTP with trailing slash
-      'https://www.postmancommunitypune.in/', // WWW with trailing slash
-      'http://www.postmancommunitypune.in/'   // HTTP WWW with trailing slash
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://postman-frontend-five.vercel.app',
+      'https://www.postmancommunitypune.in',
+      'http://www.postmancommunitypune.in',
+      'https://postmancommunitypune.in',
+      'http://postmancommunitypune.in'
     ];
-    
-    // In development, allow all origins
-    if (process.env.NODE_ENV === 'development') {
-      callback(null, true);
-      return;
-    }
     
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) {
@@ -45,18 +32,25 @@ app.use(cors({
       return;
     }
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
-      console.log('Blocked origin:', origin); // Add logging for debugging
+      console.log('Blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
-  maxAge: 86400 // Cache preflight request for 24 hours
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
+  exposedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Add security headers middleware
+app.use((req, res, next) => {
+  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.set('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
 // Add CORS debugging
 app.use((req, res, next) => {
@@ -69,7 +63,6 @@ app.use((req, res, next) => {
   next();
 });
 
-
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -78,10 +71,14 @@ if (process.env.NODE_ENV === 'development') {
 const speakerRoutes = require('./routes/speakerRoutes');
 const sponsorRoutes = require('./routes/sponsorRoutes');
 const emailRoutes = require('./routes/emailRoutes');
+const eventRoutes = require('./routes/events');
+const registrationRoutes = require('./routes/registrations');
 
 app.use('/api/speakers', speakerRoutes);
 app.use('/api/sponsors', sponsorRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/registrations', registrationRoutes);
 
 // Add root route handler
 app.get('/', (req, res) => {
@@ -92,6 +89,8 @@ app.get('/', (req, res) => {
       speakers: '/api/speakers',
       sponsors: '/api/sponsors',
       email: '/api/email',
+      events: '/api/events',
+      registrations: '/api/registrations',
       health: '/health'
     }
   });
