@@ -6,12 +6,9 @@ const helmet = require('helmet');
 const xss = require('xss-clean');
 const morgan = require('morgan');
 const path = require('path');
-<<<<<<< HEAD
-=======
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const auth = require('./middleware/auth');
->>>>>>> acf4bf5d007567ebdf6c4f1dc0160e3dabd7031f
 
 const app = express();
 const PORT = process.env.PORT || 5002;
@@ -22,15 +19,10 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 app.use(cors({
-<<<<<<< HEAD
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-=======
   origin: function (origin, callback) {
     const allowedOrigins = [
       'http://localhost:5173',
+      'http://localhost:3000',
       'http://localhost:5002',
       'https://postman-frontend-five.vercel.app',
       'https://www.postmancommunitypune.in',
@@ -56,7 +48,6 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
   exposedHeaders: ['Content-Type', 'Authorization']
->>>>>>> acf4bf5d007567ebdf6c4f1dc0160e3dabd7031f
 }));
 
 // Add security headers middleware
