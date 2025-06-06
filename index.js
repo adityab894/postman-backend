@@ -5,6 +5,10 @@ const cors = require('cors');
 const helmet = require('helmet');
 const xss = require('xss-clean');
 const morgan = require('morgan');
+const path = require('path');
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
+const auth = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5002;
@@ -18,7 +22,7 @@ app.use(cors({
   origin: function (origin, callback) {
     const allowedOrigins = [
       'http://localhost:5173',
-      'http://localhost:3000',
+      'http://localhost:5002',
       'https://postman-frontend-five.vercel.app',
       'https://www.postmancommunitypune.in',
       'http://www.postmancommunitypune.in',
@@ -73,12 +77,18 @@ const sponsorRoutes = require('./routes/sponsorRoutes');
 const emailRoutes = require('./routes/emailRoutes');
 const eventRoutes = require('./routes/events');
 const registrationRoutes = require('./routes/registrations');
+const adminAuthRoutes = require('./routes/adminAuth');
 
 app.use('/api/speakers', speakerRoutes);
 app.use('/api/sponsors', sponsorRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/registrations', registrationRoutes);
+app.use('/api/admin/auth', adminAuthRoutes);
+
+// Protected admin routes
+app.use('/api/admin/events', auth, eventRoutes);
+app.use('/api/admin/registrations', auth, registrationRoutes);
 
 // Add root route handler
 app.get('/', (req, res) => {
@@ -105,7 +115,8 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
     status: 'error',
-    message: err.message || 'Something went wrong!'
+    message: err.message || 'Something went wrong!',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
