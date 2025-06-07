@@ -70,8 +70,9 @@ app.use((req, res, next) => {
   });
 
   // Set CORS headers for all responses
-  if (req.headers.origin) {
-    res.set('Access-Control-Allow-Origin', req.headers.origin);
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.some(allowedOrigin => origin === allowedOrigin || origin.endsWith(allowedOrigin))) {
+    res.set('Access-Control-Allow-Origin', origin);
   }
   res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Origin, Accept, X-Requested-With');

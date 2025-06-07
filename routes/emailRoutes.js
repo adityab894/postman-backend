@@ -3,7 +3,21 @@ const router = express.Router();
 const EmailSubmission = require("../models/EmailSubmission");
 const { sendEmailNotification } = require("../utils/emailService");
 
+// Handle OPTIONS request for CORS preflight
+router.options("/submit", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "https://www.postmancommunitypune.in");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin, Accept, X-Requested-With");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Max-Age", "86400");
+  res.status(204).end();
+});
+
 router.post("/submit", async (req, res) => {
+  // Set CORS headers for the response
+  res.setHeader("Access-Control-Allow-Origin", "https://www.postmancommunitypune.in");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
   try {
     const { userName, userEmail, userInterest } = req.body;
 
