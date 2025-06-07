@@ -22,7 +22,9 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const allowedOrigins = [
   'http://localhost:5173',
   'https://postmancommunitypune.in',
-  'https://www.postmancommunitypune.in'
+  'https://www.postmancommunitypune.in',
+  'https://postman-frontend-alpha.vercel.app',
+  'https://postman-frontend.vercel.app'
 ];
 
 const corsOptions = {
@@ -36,7 +38,7 @@ const corsOptions = {
     }
     return callback(null, true);
   },
-  credentials: false,
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
   exposedHeaders: ['Content-Type', 'Authorization'],
@@ -49,7 +51,7 @@ app.use(cors(corsOptions));
 // Add security headers middleware
 app.use((req, res, next) => {
   res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.set('Access-Control-Allow-Credentials', 'false');
+  res.set('Access-Control-Allow-Credentials', 'true');
   next();
 });
 
