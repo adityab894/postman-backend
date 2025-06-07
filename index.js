@@ -27,10 +27,14 @@ const allowedOrigins = [
   'https://postman-frontend.vercel.app'
 ];
 
-const corsOptions = {
+// Enable CORS for all routes
+app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('Request with no origin - allowing');
+      return callback(null, true);
+    }
     
     if (allowedOrigins.indexOf(origin) === -1) {
       console.log('Blocked by CORS:', origin);
@@ -47,26 +51,32 @@ const corsOptions = {
   maxAge: 86400,
   preflightContinue: false,
   optionsSuccessStatus: 204
-};
-
-// Apply CORS middleware
-app.use(cors(corsOptions));
+}));
 
 // Add security headers middleware
 app.use((req, res, next) => {
-  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.set('Access-Control-Allow-Credentials', 'true');
-  next();
-});
-
-// Add CORS debugging
-app.use((req, res, next) => {
+  // Log all incoming requests
   console.log('Incoming request:', {
     url: req.url,
     method: req.method,
     origin: req.headers.origin,
     headers: req.headers
   });
+
+  // Set CORS headers for all responses
+  res.set('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Origin, Accept, X-Requested-With');
+  res.set('Access-Control-Allow-Credentials', 'true');
+  res.set('Access-Control-Max-Age', '86400');
+  res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request');
+    return res.status(204).end();
+  }
+
   next();
 });
 
