@@ -86,6 +86,9 @@ app.use((req, res, next) => {
     return res.status(204).end();
   }
 
+  // Normalize URL to prevent double slashes
+  req.url = req.url.replace(/\/+/g, '/');
+  
   next();
 });
 
