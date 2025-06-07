@@ -9,26 +9,12 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "methods": ["OPTIONS"],
       "headers": {
-        "Access-Control-Allow-Origin": "https://postmancommunitypune.in",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, Origin, Accept, X-Requested-With",
-        "Access-Control-Allow-Credentials": "false",
-        "Access-Control-Max-Age": "86400"
-      },
-      "continue": false
-    },
-    {
-      "src": "/api/(.*)",
-      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH"],
-      "headers": {
-        "Access-Control-Allow-Origin": "https://postmancommunitypune.in",
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization, Origin, Accept, X-Requested-With",
         "Access-Control-Allow-Credentials": "false"
-      },
-      "continue": true
+      }
     },
     {
       "src": "/(.*)",
@@ -36,10 +22,6 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production",
-    "MONGODB_URI": "@mongodb_uri",
-    "JWT_SECRET": "@jwt_secret",
-    "ADMIN_EMAIL": "@admin_email",
-    "EMAIL_PASSWORD": "@email_password"
+    "NODE_ENV": "production"
   }
 }

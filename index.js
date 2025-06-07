@@ -19,8 +19,23 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://postmancommunitypune.in',
+  'https://www.postmancommunitypune.in'
+];
+
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: false,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
@@ -116,45 +131,62 @@ app.use('*', (req, res) => {
 // Database connection with retry logic
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/postman-conference', {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI environment variable is not set');
+    }
+
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     
-    const server = app.listen(PORT, () => {
-      console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-    });
+    // Only start the server if we're not in a serverless environment
+    if (process.env.NODE_ENV !== 'production') {
+      const server = app.listen(PORT, () => {
+        console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+      });
 
-    server.on('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use. Please try a different port.`);
-        process.exit(1);
-      } else {
-        console.error('Server error:', err);
-        process.exit(1);
-      }
-    });
+      server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+          console.error(`Port ${PORT} is already in use. Please try a different port.`);
+          process.exit(1);
+        } else {
+          console.error('Server error:', err);
+          process.exit(1);
+        }
+      });
+    }
 
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    console.log('Retrying database connection in 5 seconds...');
-    setTimeout(connectDB, 5000);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Retrying database connection in 5 seconds...');
+      setTimeout(connectDB, 5000);
+    } else {
+      process.exit(1);
+    }
   }
 };
 
+// Connect to database
 connectDB();
 
+// Error handling
 process.on('unhandledRejection', (err) => {
   console.error('UNHANDLED REJECTION! 💥 Shutting down...');
   console.error(err.name, err.message);
-  process.exit(1);
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
 });
 
 process.on('uncaughtException', (err) => {
   console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
   console.error(err.name, err.message);
-  process.exit(1);
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
 });
 
 // Export the Express app for Vercel
