@@ -36,11 +36,17 @@ app.use(cors({
       return callback(null, true);
     }
     
-    if (allowedOrigins.indexOf(origin) === -1) {
+    // Check if the origin is allowed
+    const isAllowed = allowedOrigins.some(allowedOrigin => 
+      origin === allowedOrigin || origin.endsWith(allowedOrigin)
+    );
+    
+    if (!isAllowed) {
       console.log('Blocked by CORS:', origin);
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
       return callback(new Error(msg), false);
     }
+    
     console.log('Allowed by CORS:', origin);
     return callback(null, true);
   },
@@ -64,7 +70,9 @@ app.use((req, res, next) => {
   });
 
   // Set CORS headers for all responses
-  res.set('Access-Control-Allow-Origin', req.headers.origin || '*');
+  if (req.headers.origin) {
+    res.set('Access-Control-Allow-Origin', req.headers.origin);
+  }
   res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Origin, Accept, X-Requested-With');
   res.set('Access-Control-Allow-Credentials', 'true');
