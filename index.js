@@ -24,6 +24,7 @@ app.use(cors({
       'http://localhost:5173',
       'http://localhost:3000',
       'http://localhost:5002',
+      'https://postman-frontend-three.vercel.app',
       'https://postman-frontend-five.vercel.app',
       'https://www.postmancommunitypune.in',
       'http://www.postmancommunitypune.in',
