@@ -18,6 +18,14 @@ const emailSubmissionSchema = new mongoose.Schema({
     required: [true, 'Interest area is required'],
     enum: ['Volunteer', 'Management', 'Social Media', 'Content Creation', 'Design']
   },
+  userNumber: {
+    type: String,
+    required: [true, 'Phone number is required'],
+    minlength: [10, 'Phone number must be at least 10 digits'],
+    maxlength: [15, 'Phone number must be at most 15 digits'],
+    trim: true,
+    unique: true
+  },
   submittedAt: {
     type: Date,
     default: Date.now

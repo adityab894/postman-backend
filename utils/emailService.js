@@ -29,6 +29,7 @@ const sendEmailNotification = async (submission) => {
         <h2>New Team Interest Form Submission</h2>
         <p><strong>Name:</strong> ${submission.userName}</p>
         <p><strong>Email:</strong> ${submission.userEmail}</p>
+        <p><strong>Phone Number:</strong> ${submission.userNumber}</p>
         <p><strong>Interest Area:</strong> ${submission.userInterest}</p>
         <p><strong>Submission Date:</strong> ${new Date(
           submission.submittedAt

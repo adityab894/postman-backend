@@ -5,9 +5,9 @@ const { sendEmailNotification } = require("../utils/emailService");
 
 router.post("/submit", async (req, res) => {
   try {
-    const { userName, userEmail, userInterest } = req.body;
+    const { userName, userEmail, userInterest, userNumber } = req.body;
 
-    if (!userName || !userEmail || !userInterest) {
+    if (!userName || !userEmail || !userInterest || !userNumber) {
       return res.status(400).json({
         status: "error",
         message: "Please provide all required fields",
@@ -20,6 +20,10 @@ router.post("/submit", async (req, res) => {
           {
             field: "userInterest",
             message: !userInterest ? "Interest area is required" : null,
+          },
+          {
+            field: "userNumber",
+            message: !userNumber ? "Phone number is required" : null,
           },
         ].filter((error) => error.message),
       });
@@ -45,6 +49,7 @@ router.post("/submit", async (req, res) => {
       userName,
       userEmail,
       userInterest,
+      userNumber,
       submittedAt: new Date(),
     });
 
@@ -67,6 +72,7 @@ router.post("/submit", async (req, res) => {
           userName: submission.userName,
           userEmail: submission.userEmail,
           userInterest: submission.userInterest,
+          userNumber: submission.userNumber,
           submittedAt: submission.submittedAt,
         },
       },
