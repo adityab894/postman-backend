@@ -80,6 +80,7 @@ const emailRoutes = require('./routes/emailRoutes');
 const eventRoutes = require('./routes/events');
 const registrationRoutes = require('./routes/registrations');
 const adminAuthRoutes = require('./routes/adminAuth');
+const subscribeRoutes = require('./routes/subscribe');
 
 app.use('/api/speakers', speakerRoutes);
 app.use('/api/sponsors', sponsorRoutes);
@@ -87,6 +88,7 @@ app.use('/api/email', emailRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/admin/auth', adminAuthRoutes);
+app.use('/api/subscribe', subscribeRoutes);
 
 // Protected admin routes
 app.use('/api/admin/events', auth, eventRoutes);
